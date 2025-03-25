@@ -1,7 +1,12 @@
 streamlit
-tensorflow
-plotly
-pandas
+tensorflow<2.11
 numpy
+pandas
 scikit-learn
 matplotlib
+seaborn
+opencv-python
+Pillow
+torch
+torchvision
+torchaudio
