@@ -8,10 +8,11 @@ import matplotlib.pyplot as plt
 from collections import Counter
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import re
+import os
 
 # Define constants
 MODEL_PATH = (
-    "D:/Project/Sentiment_Analysis/Model/with_neutral_sentiment/lstm_sentiment_model.h5"
+    MODEL_PATH = os.path.join(os.getcwd(), "RNN_Models", "lstm_sentiment_model.h5")
 )
 TOKENIZER_PATH = "D:/Project/Sentiment_Analysis/Model/tokenizer.pkl"
 
