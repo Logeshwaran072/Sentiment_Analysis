@@ -12,8 +12,9 @@ import os
 
 # Define constants
 MODEL_PATH = os.path.join(os.getcwd(), "RNN_Models", "lstm_sentiment_model.h5")
-
-TOKENIZER_PATH = "D:/Project/Sentiment_Analysis/Model/tokenizer.pkl"
+# Tokenizer path update
+TOKENIZER_PATH = os.path.join(os.getcwd(), "RNN_Models", "tokenizer.pkl")
+#TOKENIZER_PATH = "D:/Project/Sentiment_Analysis/Model/tokenizer.pkl"
 
 VOCAB_SIZE = 20000
 MAX_LENGTH = 50
