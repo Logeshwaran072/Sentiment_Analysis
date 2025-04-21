@@ -1,7 +1,9 @@
 streamlit
+tensorflow==2.11.0
+pickle5
 numpy<2.0
 pandas
-scikit-learn
+plotly
 matplotlib
 seaborn
 opencv-python
@@ -9,6 +11,6 @@ Pillow
 torch
 torchvision
 torchaudio
-tensorflow==2.11.0
 protobuf
+
 
