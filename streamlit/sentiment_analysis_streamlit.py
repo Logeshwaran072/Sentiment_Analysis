@@ -16,6 +16,9 @@ MODEL_PATH = os.path.join(os.getcwd(), "RNN_Models", "lstm_sentiment_model.h5")
 TOKENIZER_PATH = os.path.join(os.getcwd(), "RNN_Models", "tokenizer.pkl")
 #TOKENIZER_PATH = "D:/Project/Sentiment_Analysis/Model/tokenizer.pkl"
 
+VOCAB_SIZE = 20000
+MAX_LENGTH = 50
+
 # --- Load Model & Tokenizer ---
 best_model = tf.keras.models.load_model(MODEL_PATH)
 with open(TOKENIZER_PATH, "rb") as handle:
