@@ -78,28 +78,26 @@ if "sentiment_data" not in st.session_state:
 st.markdown("### ✍️ Enter your text (single or multiple sentences):")
 user_input = st.text_area("Input Text:", height=150, key="user_input")
 
+# --- Prediction for Text Area ---
 if st.button("Predict Sentiment 🧠"):
     if user_input.strip():
         sentences = split_text(user_input)
         sentiment_results = []
-
         for sentence in sentences:
             sentiment, confidence = predict_sentiment(sentence)
-            sentiment_results.append(
-                {"Text": sentence, "Sentiment": sentiment, "Confidence": confidence}
-            )
-            st.session_state.sentiment_data.append(
-                {"Text": sentence, "Sentiment": sentiment, "Confidence": confidence}
-            )
+            result = {
+                "Text": sentence,
+                "Sentiment": sentiment,
+                "Confidence": float(confidence),
+            }
+            sentiment_results.append(result)
+            st.session_state.sentiment_data.append(result)
 
-        # Display results in a table
         df = pd.DataFrame(sentiment_results)
         st.write("### Sentiment Results 📝")
         st.dataframe(df)
     else:
         st.warning("⚠️ Please enter some text for analysis.")
-
-
 
 # --- File Upload ---
 st.markdown("### 📁 Or Upload a CSV/TXT File for Bulk Sentiment Analysis")
@@ -148,14 +146,28 @@ if bulk_df is not None and st.button("📊 Predict Uploaded Data"):
     # )
 
 # --- Visualizations ---
-# Show Sentiment Distribution Chart if data exists
-if len(st.session_state.sentiment_data) > 0:
-    df = pd.DataFrame(st.session_state.sentiment_data)
+if len(st.session_state.get("sentiment_data", [])) > 0:
+    df = pd.DataFrame(st.session_state["sentiment_data"])
+    # ✅ Summary Section
+    st.write("### 📊 Summary Insights")
+    total = len(df)
+    avg_conf = df["Confidence"].mean()
+    dominant = df["Sentiment"].value_counts().idxmax()
+    st.info(f"**Total Sentences Analyzed:** {total}")
+    st.success(f"**Most Common Sentiment:** {dominant}")
+    st.warning(f"**Average Confidence Score:** {avg_conf:.2f}")
 
-    # 📊 Pie Chart for sentiment distribution
+
+        # Display the count of each unique sentiment
+    st.write("### Sentiment Count 🔢")
+    sentiment_count_df = pd.DataFrame(sentiment_counts).reset_index()
+    sentiment_count_df.columns = ["Sentiment", "Count"]
+    st.dataframe(sentiment_count_df)
+
+    # pie chart
+    st.write("### Sentiment Distribution 📊")
     sentiment_counts = df["Sentiment"].value_counts().reset_index()
     sentiment_counts.columns = ["Sentiment", "Count"]
-    st.write("### Sentiment Distribution 📊")
     fig = px.pie(
         sentiment_counts,
         names="Sentiment",
@@ -169,52 +181,28 @@ if len(st.session_state.sentiment_data) > 0:
         hole=0.3,
     )
     st.plotly_chart(fig, use_container_width=True)
-
-    # ✅ Summary Section
-    st.write("### 📊 Summary Insights")
-    total = len(df)
-    avg_conf = df["Confidence"].mean()
-    dominant = df["Sentiment"].value_counts().idxmax()
-    st.info(f"**Total Sentences Analyzed:** {total}")
-    st.success(f"**Most Common Sentiment:** {dominant}")
-    st.warning(f"**Average Confidence Score:** {avg_conf:.2f}")
-
-    # # pie chart
-    # st.write("### Sentiment Distribution 📊")
-    # sentiment_counts = df["Sentiment"].value_counts().reset_index()
-    # sentiment_counts.columns = ["Sentiment", "Count"]
-    # fig = px.pie(
-    #     sentiment_counts,
-    #     names="Sentiment",
-    #     values="Count",
-    #     color="Sentiment",
-    #     color_discrete_map={
-    #         "Negative 😡": "#FF4B4B",
-    #         "Neutral 😐": "#FFC107",
-    #         "Positive 😊": "#4CAF50",
-    #     },
-    #     hole=0.3,
-    # )
-    # st.plotly_chart(fig, use_container_width=True)
-        # 📈 Confidence Score Over Time
-    df["ID"] = range(1, len(df) + 1)  # Simple sequential index
-
+    # line chart
     st.write("### Confidence Score Trend 📈")
+    df["Index"] = df.index.astype(str)
     fig2 = px.line(
-        df, y="Confidence", x="ID", markers=True, title="Confidence Score Over Time"
+        df, y="Confidence", x="Index", markers=True, title="Confidence Score Over Time"
     )
     st.plotly_chart(fig2, use_container_width=True)
-
-    # 📊 Sentiment Over Time (Bar Chart) without Names
+    # bar chart
     st.write("### Sentiment Over Time 📊")
     fig3 = px.bar(
         df,
-        x="ID",
+        x="Index",
         y="Confidence",
         color="Sentiment",
+        color_discrete_map={
+            "Negative 😡": "#FF4B4B",
+            "Neutral 😐": "#FFC107",
+            "Positive 😊": "#4CAF50",
+        },
         title="Sentiment Confidence Over Time",
     )
-    fig3.update_layout(xaxis_tickangle=-45)  # Rotate text labels for readability
+    fig3.update_layout(xaxis_tickangle=-45)
     st.plotly_chart(fig3, use_container_width=True)
 
     # most & least confident
