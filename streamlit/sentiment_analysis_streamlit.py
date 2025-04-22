@@ -166,12 +166,10 @@ if len(st.session_state.get("sentiment_data", [])) > 0:
     sentiment_count_df.columns = ["Sentiment", "Count"]
     st.dataframe(sentiment_count_df)
 
-    # pie chart
+  # pie chart using sentiment_counts directly from the previous table
     st.write("### Sentiment Distribution 📊")
-    sentiment_counts = df["Sentiment"].value_counts().reset_index()
-    sentiment_counts.columns = ["Sentiment", "Count"]
     fig = px.pie(
-        sentiment_counts,
+        sentiment_count_df,  # Use sentiment_count_df here
         names="Sentiment",
         values="Count",
         color="Sentiment",
@@ -183,6 +181,8 @@ if len(st.session_state.get("sentiment_data", [])) > 0:
         hole=0.3,
     )
     st.plotly_chart(fig, use_container_width=True)
+
+    
     # line chart
     st.write("### Confidence Score Trend 📈")
     df["Index"] = df.index.astype(str)
