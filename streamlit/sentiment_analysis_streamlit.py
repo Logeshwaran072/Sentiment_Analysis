@@ -8,10 +8,13 @@ import matplotlib.pyplot as plt
 from collections import Counter
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import re
+import os
 
-# --- Constants ---
-MODEL_PATH = "D:/Project/Sentiment_Analysis/Model/RNN_Models/lstm_sentiment_model.h5"
-TOKENIZER_PATH = "D:/Project/Sentiment_Analysis/Model/tokenizer.pkl"
+# Define constants
+MODEL_PATH = os.path.join(os.getcwd(), "RNN_Models", "lstm_sentiment_model.h5")
+# Tokenizer path update
+TOKENIZER_PATH = os.path.join(os.getcwd(), "RNN_Models", "tokenizer.pkl")
+
 VOCAB_SIZE = 20000
 MAX_LENGTH = 50
 
