@@ -75,46 +75,93 @@ if st.button("🔄 Reset All"):
 if "sentiment_data" not in st.session_state:
     st.session_state.sentiment_data = []
 
-user_input = st.text_area(
-    "✍️ Enter your text (single or multiple sentences):", height=150, key="user_input"
-)
+# --- User Input Text ---
+st.markdown("### ✍️ Enter your text (single or multiple sentences):")
+user_input = st.text_area("Input Text:", height=150, key="user_input")
 
-# Predict Button
+# --- Prediction for Text Area ---
 if st.button("Predict Sentiment 🧠"):
     if user_input.strip():
         sentences = split_text(user_input)
         sentiment_results = []
         for sentence in sentences:
             sentiment, confidence = predict_sentiment(sentence)
-            sentiment_results.append(
-                {
-                    "Text": sentence,
-                    "Sentiment": sentiment,
-                    "Confidence": float(confidence),
-                }
-            )
-            st.session_state.sentiment_data.append(
-                {
-                    "Text": sentence,
-                    "Sentiment": sentiment,
-                    "Confidence": float(confidence),
-                }
-            )
-        # Show results
+            result = {
+                "Text": sentence,
+                "Sentiment": sentiment,
+                "Confidence": float(confidence),
+            }
+            sentiment_results.append(result)
+            st.session_state.sentiment_data.append(result)
+
         df = pd.DataFrame(sentiment_results)
         st.write("### Sentiment Results 📝")
         st.dataframe(df)
     else:
         st.warning("⚠️ Please enter some text for analysis.")
 
-# Visualizations
+# --- File Upload ---
+st.markdown("### 📁 Or Upload a CSV/TXT File for Bulk Sentiment Analysis")
+uploaded_file = st.file_uploader("Upload a .csv or .txt file", type=["csv", "txt"])
+bulk_df = None
+
+if uploaded_file:
+    try:
+        if uploaded_file.name.endswith(".csv"):
+            bulk_df = pd.read_csv(uploaded_file)
+            if "Text" not in bulk_df.columns:
+                st.warning("⚠️ CSV must have a column named 'Text'")
+                bulk_df = None
+        else:
+            lines = uploaded_file.read().decode("utf-8").splitlines()
+            bulk_df = pd.DataFrame(lines, columns=["Text"])
+    except Exception as e:
+        st.error(f"❌ Error loading file: {e}")
+
+
+# --- Prediction for Uploaded File ---
+if bulk_df is not None and st.button("📊 Predict Uploaded Data"):
+    st.write("### Analyzing Uploaded Text...")
+    bulk_results = []
+    for sentence in bulk_df["Text"]:
+        sentiment, confidence = predict_sentiment(sentence)
+        result = {
+            "Text": sentence,
+            "Sentiment": sentiment,
+            "Confidence": float(confidence),
+        }
+        bulk_results.append(result)
+        st.session_state.sentiment_data.append(result)
+
+    result_df = pd.DataFrame(bulk_results)
+    st.write("### 📋 Bulk Sentiment Results")
+    st.dataframe(result_df)
+
+    # # Download button
+    # csv = result_df.to_csv(index=False).encode("utf-8")
+    # st.download_button(
+    #     label="⬇️ Download CSV",
+    #     data=csv,
+    #     file_name="sentiment_results.csv",
+    #     mime="text/csv",
+    # )
+
+# --- Visualizations ---
 if len(st.session_state.get("sentiment_data", [])) > 0:
     df = pd.DataFrame(st.session_state["sentiment_data"])
+    # ✅ Summary Section
+    st.write("### 📊 Summary Insights")
+    total = len(df)
+    avg_conf = df["Confidence"].mean()
+    dominant = df["Sentiment"].value_counts().idxmax()
+    st.info(f"**Total Sentences Analyzed:** {total}")
+    st.success(f"**Most Common Sentiment:** {dominant}")
+    st.warning(f"**Average Confidence Score:** {avg_conf:.2f}")
 
-    # Pie Chart
+    # pie chart
+    st.write("### Sentiment Distribution 📊")
     sentiment_counts = df["Sentiment"].value_counts().reset_index()
     sentiment_counts.columns = ["Sentiment", "Count"]
-    st.write("### Sentiment Distribution 📊")
     fig = px.pie(
         sentiment_counts,
         names="Sentiment",
@@ -128,28 +175,31 @@ if len(st.session_state.get("sentiment_data", [])) > 0:
         hole=0.3,
     )
     st.plotly_chart(fig, use_container_width=True)
-
-    # Line Chart
+    # line chart
     st.write("### Confidence Score Trend 📈")
-    df["Index"] = df.index.astype(str)  # Avoid Streamlit Cloud issues with mixed types
+    df["Index"] = df.index.astype(str)
     fig2 = px.line(
         df, y="Confidence", x="Index", markers=True, title="Confidence Score Over Time"
     )
     st.plotly_chart(fig2, use_container_width=True)
-
-    # Bar Chart
+    # bar chart
     st.write("### Sentiment Over Time 📊")
     fig3 = px.bar(
         df,
         x="Index",
         y="Confidence",
         color="Sentiment",
+        color_discrete_map={
+            "Negative 😡": "#FF4B4B",
+            "Neutral 😐": "#FFC107",
+            "Positive 😊": "#4CAF50",
+        },
         title="Sentiment Confidence Over Time",
     )
     fig3.update_layout(xaxis_tickangle=-45)
     st.plotly_chart(fig3, use_container_width=True)
 
-    # Most & Least Confident
+    # most & least confident
     st.write("### Confidence Analysis 🔎")
     most_confident = df.loc[df["Confidence"].idxmax()]
     least_confident = df.loc[df["Confidence"].idxmin()]
@@ -166,6 +216,28 @@ if len(st.session_state.get("sentiment_data", [])) > 0:
     word_freq = Counter(words).most_common(10)
     word_freq_df = pd.DataFrame(word_freq, columns=["Word", "Frequency"])
     st.dataframe(word_freq_df)
+
+    # 📤 Download
+    st.download_button(
+        "📥 Download Results as CSV",
+        data=df.to_csv(index=False),
+        file_name="sentiment_results.csv",
+        mime="text/csv",
+    )
+
+    # 📨 Feedback Form (optional user feedback)
+    st.write("### 📝 Feedback (Optional)")
+    feedback_text = st.text_area(
+        "Was any sentiment prediction incorrect? Let us know here:"
+    )
+    if st.button("Submit Feedback"):
+        if feedback_text.strip():
+            with open("feedback_log.txt", "a", encoding="utf-8") as f:
+                f.write(feedback_text + "\n")
+            st.success("✅ Feedback submitted successfully!")
+        else:
+            st.warning("⚠️ Feedback is empty!")
+
 
 
 # Reset the session state
