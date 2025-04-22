@@ -72,49 +72,56 @@ if st.button("🔄 Reset All"):
     reset_all()
 
 # Store data in session
+# Store data in session
 if "sentiment_data" not in st.session_state:
     st.session_state.sentiment_data = []
 
-user_input = st.text_area(
-    "✍️ Enter your text (single or multiple sentences):", height=150, key="user_input"
-)
+# --- User Input Text ---
+st.markdown("### ✍️ Enter your text (single or multiple sentences):")
+user_input = st.text_area("Input Text:", height=150, key="user_input")
 
-# Predict Button
+# --- Prediction for Text Area ---
 if st.button("Predict Sentiment 🧠"):
     if user_input.strip():
         sentences = split_text(user_input)
         sentiment_results = []
         for sentence in sentences:
             sentiment, confidence = predict_sentiment(sentence)
-            sentiment_results.append(
-                {
-                    "Text": sentence,
-                    "Sentiment": sentiment,
-                    "Confidence": float(confidence),
-                }
-            )
-            st.session_state.sentiment_data.append(
-                {
-                    "Text": sentence,
-                    "Sentiment": sentiment,
-                    "Confidence": float(confidence),
-                }
-            )
-        # Show results
+            result = {
+                "Text": sentence,
+                "Sentiment": sentiment,
+                "Confidence": float(confidence),
+            }
+            sentiment_results.append(result)
+            # Store each result in session state for future access
+            st.session_state.sentiment_data.append(result)
+
+        # Show the sentiment results in a table
         df = pd.DataFrame(sentiment_results)
         st.write("### Sentiment Results 📝")
         st.dataframe(df)
     else:
         st.warning("⚠️ Please enter some text for analysis.")
 
-# Visualizations
+# --- Summary Section ---
 if len(st.session_state.get("sentiment_data", [])) > 0:
     df = pd.DataFrame(st.session_state["sentiment_data"])
 
-    # Pie Chart
+    # ✅ Summary Section
+    st.write("### 📊 Summary Insights")
+    total = len(df)
+    avg_conf = df["Confidence"].mean()
+    dominant = df["Sentiment"].value_counts().idxmax()
+
+    st.info(f"**Total Sentences Analyzed:** {total}")
+    st.success(f"**Most Common Sentiment:** {dominant}")
+    st.warning(f"**Average Confidence Score:** {avg_conf:.2f}")
+
+    # Pie chart for sentiment distribution
+    st.write("### Sentiment Distribution 📊")
     sentiment_counts = df["Sentiment"].value_counts().reset_index()
     sentiment_counts.columns = ["Sentiment", "Count"]
-    st.write("### Sentiment Distribution 📊")
+
     fig = px.pie(
         sentiment_counts,
         names="Sentiment",
