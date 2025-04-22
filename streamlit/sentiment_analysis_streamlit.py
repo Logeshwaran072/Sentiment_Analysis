@@ -153,23 +153,16 @@ if len(st.session_state.get("sentiment_data", [])) > 0:
     total = len(df)
     avg_conf = df["Confidence"].mean()
     dominant = df["Sentiment"].value_counts().idxmax()
-    sentiment_counts = df["Sentiment"].value_counts()
-    
     st.info(f"**Total Sentences Analyzed:** {total}")
     st.success(f"**Most Common Sentiment:** {dominant}")
     st.warning(f"**Average Confidence Score:** {avg_conf:.2f}")
 
-
-        # Display the count of each unique sentiment
-    st.write("### Sentiment Count 🔢")
-    sentiment_count_df = pd.DataFrame(sentiment_counts).reset_index()
-    sentiment_count_df.columns = ["Sentiment", "Count"]
-    st.dataframe(sentiment_count_df)
-
-  # pie chart using sentiment_counts directly from the previous table
+    # pie chart
     st.write("### Sentiment Distribution 📊")
+    sentiment_counts = df["Sentiment"].value_counts().reset_index()
+    sentiment_counts.columns = ["Sentiment", "Count"]
     fig = px.pie(
-        sentiment_count_df,  # Use sentiment_count_df here
+        sentiment_counts,
         names="Sentiment",
         values="Count",
         color="Sentiment",
@@ -181,8 +174,6 @@ if len(st.session_state.get("sentiment_data", [])) > 0:
         hole=0.3,
     )
     st.plotly_chart(fig, use_container_width=True)
-
-    
     # line chart
     st.write("### Confidence Score Trend 📈")
     df["Index"] = df.index.astype(str)
