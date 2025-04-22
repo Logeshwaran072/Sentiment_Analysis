@@ -153,6 +153,8 @@ if len(st.session_state.get("sentiment_data", [])) > 0:
     total = len(df)
     avg_conf = df["Confidence"].mean()
     dominant = df["Sentiment"].value_counts().idxmax()
+    sentiment_counts = df["Sentiment"].value_counts()
+    
     st.info(f"**Total Sentences Analyzed:** {total}")
     st.success(f"**Most Common Sentiment:** {dominant}")
     st.warning(f"**Average Confidence Score:** {avg_conf:.2f}")
