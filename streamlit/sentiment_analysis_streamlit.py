@@ -174,28 +174,25 @@ if len(st.session_state.get("sentiment_data", [])) > 0:
         hole=0.3,
     )
     st.plotly_chart(fig, use_container_width=True)
-    # line chart
+        # 📈 Confidence Score Over Time
+    df["ID"] = range(1, len(df) + 1)  # Simple sequential index
+
     st.write("### Confidence Score Trend 📈")
-    df["Index"] = df.index.astype(str)
     fig2 = px.line(
-        df, y="Confidence", x="Index", markers=True, title="Confidence Score Over Time"
+        df, y="Confidence", x="ID", markers=True, title="Confidence Score Over Time"
     )
     st.plotly_chart(fig2, use_container_width=True)
-    # bar chart
+
+    # 📊 Sentiment Over Time (Bar Chart) without Names
     st.write("### Sentiment Over Time 📊")
     fig3 = px.bar(
         df,
-        x="Index",
+        x="ID",
         y="Confidence",
         color="Sentiment",
-        color_discrete_map={
-            "Negative 😡": "#FF4B4B",
-            "Neutral 😐": "#FFC107",
-            "Positive 😊": "#4CAF50",
-        },
         title="Sentiment Confidence Over Time",
     )
-    fig3.update_layout(xaxis_tickangle=-45)
+    fig3.update_layout(xaxis_tickangle=-45)  # Rotate text labels for readability
     st.plotly_chart(fig3, use_container_width=True)
 
     # most & least confident
